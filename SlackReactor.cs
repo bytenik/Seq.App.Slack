@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -45,8 +46,11 @@ namespace Seq.Slack
         {
             bool added = false;
             var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k => { added = true; return DateTime.UtcNow; });
-            if (!added && lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes))
-                return;
+            if (!added)
+            {
+                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
+                _lastSeen[evt.EventType] = DateTime.UtcNow;
+            }
 
             var color = LevelToColor[evt.Data.Level];
 
@@ -54,13 +58,13 @@ namespace Seq.Slack
             {
                 fallback = "[" + evt.Data.Level + "] " + evt.Data.RenderedMessage,
                 text = evt.Data.RenderedMessage,
-                attachments = new JArray()
+                attachments = new ArrayList()
             };
 
             var special = new
             {
                 color = color,
-                values = new JArray { new { title = "Level", value = Enum.GetName(typeof(LogEventLevel), evt.Data.Level) } }
+                fields = new ArrayList { new { title = "Level", value = Enum.GetName(typeof(LogEventLevel), evt.Data.Level), @short = true } }
             };
             message.attachments.Add(special);
             foreach (var key in SpecialProperties)
@@ -68,7 +72,7 @@ namespace Seq.Slack
                 if (evt.Data.Properties.ContainsKey(key))
                 {
                     var property = evt.Data.Properties[key];
-                    special.values.Add(new { value = property.ToString(), title = key, @short = true });
+                    special.fields.Add(new { value = property.ToString(), title = key, @short = true });
                 }
             }
 
@@ -78,8 +82,19 @@ namespace Seq.Slack
                 {
                     color = color,
                     title = "Exception Details",
-                    text = "```" + evt.Data.Exception.Replace("\r", "").Replace("\n", @"\n") + "```",
-                    mrkdwn_in = new JArray { "text" },
+                    text = "```" + evt.Data.Exception.Replace("\r", "") + "```",
+                    mrkdwn_in = new List<string> { "text" },
+                });
+            }
+
+            if (evt.Data.Properties.ContainsKey("StackTrace"))
+            {
+                message.attachments.Add(new
+                {
+                    color = color,
+                    title = "Stack Trace",
+                    text = "```" + evt.Data.Properties.$StackTrace.ToString().Replace("\r", "") + "```",
+                    mrkdwn_in = new List<string> { "text" },
                 });
             }
 
@@ -87,11 +102,16 @@ namespace Seq.Slack
             {
                 color = color,
                 title = "Properties",
-                values = new JArray(),
+                fields = new ArrayList(),
             };
             foreach (var property in evt.Data.Properties)
-                otherProperties.values.Add(new { value = property.Value.ToString(), title = property.Key, @short = false });
-            if (otherProperties.values.Count != 0)
+            {
+                if (SpecialProperties.Contains(property.Key)) continue;
+                if (property.Key == "StackTrace") continue;
+                otherProperties.fields.Add(new { value = property.Value.ToString(), title = property.Key, @short = false });
+            }
+
+            if (otherProperties.fields.Count != 0)
                 message.attachments.Add(otherProperties);
 
             var json = JsonConvert.SerializeObject(message);
