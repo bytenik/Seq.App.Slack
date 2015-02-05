@@ -69,7 +69,7 @@ namespace Seq.Slack
             message.attachments.Add(special);
             foreach (var key in SpecialProperties)
             {
-                if (evt.Data.Properties.ContainsKey(key))
+                if (evt.Data.Properties != null && evt.Data.Properties.ContainsKey(key))
                 {
                     var property = evt.Data.Properties[key];
                     special.fields.Add(new { value = property.ToString(), title = key, @short = true });
@@ -87,13 +87,13 @@ namespace Seq.Slack
                 });
             }
 
-            if (evt.Data.Properties.ContainsKey("StackTrace"))
+            if (evt.Data.Properties != null && evt.Data.Properties.ContainsKey("StackTrace"))
             {
                 message.attachments.Add(new
                 {
                     color = color,
                     title = "Stack Trace",
-                    text = "```" + evt.Data.Properties.$StackTrace.ToString().Replace("\r", "") + "```",
+                    text = "```" + evt.Data.Properties["StackTrace"].ToString().Replace("\r", "") + "```",
                     mrkdwn_in = new List<string> { "text" },
                 });
             }
@@ -104,11 +104,16 @@ namespace Seq.Slack
                 title = "Properties",
                 fields = new ArrayList(),
             };
-            foreach (var property in evt.Data.Properties)
+
+            if (evt.Data.Properties != null)
             {
-                if (SpecialProperties.Contains(property.Key)) continue;
-                if (property.Key == "StackTrace") continue;
-                otherProperties.fields.Add(new { value = property.Value.ToString(), title = property.Key, @short = false });
+                foreach (var property in evt.Data.Properties)
+                {
+                    if (SpecialProperties.Contains(property.Key)) continue;
+                    if (property.Key == "StackTrace") continue;
+                    otherProperties.fields.Add(
+                        new {value = property.Value.ToString(), title = property.Key, @short = false});
+                }
             }
 
             if (otherProperties.fields.Count != 0)
