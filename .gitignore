@@ -47,3 +47,4 @@ Downloaded Profiling Logs/*
 *.vsp
 *.Sync*
 *.ide/
+*.nupkg
