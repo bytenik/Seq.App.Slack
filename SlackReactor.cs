@@ -23,6 +23,12 @@ namespace Seq.Slack
         public string WebhookUrl { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "Username",
+            IsOptional = true,
+            HelpText = "The username that Seq uses when posting to Slack. If not specified, uses the Webhook default.")]
+        public string Username { get; set; }
+
+        [SeqAppSetting(
             DisplayName = "Suppression time (minutes)",
             IsOptional = true,
             HelpText = "Once an event type has been sent to Slack, the time to wait before sending again. The default is zero.")]
@@ -42,6 +48,11 @@ namespace Seq.Slack
 
         private static readonly ImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
 
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         public void On(Event<LogEventData> evt)
         {
             bool added = false;
@@ -58,7 +69,9 @@ namespace Seq.Slack
             {
                 fallback = "[" + evt.Data.Level + "] " + evt.Data.RenderedMessage,
                 text = evt.Data.RenderedMessage,
-                attachments = new ArrayList()
+                attachments = new ArrayList(),
+                username = string.IsNullOrWhiteSpace(Username) ? null : Username,
+                icon_url = "https://getseq.net/images/nuget/seq.png"
             };
 
             var special = new
@@ -119,7 +132,7 @@ namespace Seq.Slack
             if (otherProperties.fields.Count != 0)
                 message.attachments.Add(otherProperties);
 
-            var json = JsonConvert.SerializeObject(message);
+            var json = JsonConvert.SerializeObject(message, JsonSerializerSettings);
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
                 var resp = HttpClient.PostAsync(WebhookUrl, content).Result;
