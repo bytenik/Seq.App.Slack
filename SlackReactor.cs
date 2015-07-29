@@ -40,6 +40,11 @@ namespace Seq.Slack
             HelpText = "Should the event include the property information as attachments to the message. The default is to include")]
         public bool ExcludePropertyInformation { get; set; }
 
+        [SeqAppSetting(
+            HelpText = "The image to show in the room for the message. The default is https://getseq.net/images/nuget/seq.png",
+            IsOptional = true)]
+        public string IconUrl { get; set; }
+
         private static readonly HttpClient HttpClient = new HttpClient();
         private readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
 
@@ -77,7 +82,7 @@ namespace Seq.Slack
                 text = evt.Data.RenderedMessage,
                 attachments = new ArrayList(),
                 username = string.IsNullOrWhiteSpace(Username) ? null : Username,
-                icon_url = "https://getseq.net/images/nuget/seq.png"
+                icon_url = string.IsNullOrWhiteSpace(IconUrl) ? "https://getseq.net/images/nuget/seq.png" : IconUrl
             };
 
             if (ExcludePropertyInformation)
