@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Seq.Slack
@@ -17,6 +18,13 @@ namespace Seq.Slack
     [SeqApp("Slack Notifier", Description = "Sends messages matching a view to Slack.")]
     public class SlackReactor : Reactor, ISubscribeTo<LogEventData>
     {
+        static Regex placeholdersRx = new Regex("(\\[(?<key>[^\\[\\]]+?)(\\:(?<format>[^\\[\\]]+?))?\\])", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        [SeqAppSetting(
+            DisplayName = "Seq Base URL",
+            HelpText = "Used for generating perma links to events in Slack messages.",
+        IsOptional = true)]
+        public string BaseUrl { get; set; }
         [SeqAppSetting(
             DisplayName = "Webhook URL",
             HelpText = "Slack labels this as \"Your Unique Webhook URL\".")]
@@ -39,6 +47,11 @@ namespace Seq.Slack
             IsOptional = true,
             HelpText = "Should the event include the property information as attachments to the message. The default is to include")]
         public bool ExcludePropertyInformation { get; set; }
+
+        [SeqAppSetting(
+            HelpText = "The message template to use when writing the message to Slack. Refer to https://api.slack.com/docs/formatting for formatting options. Event property values can be added in the format [PropertyKey]. The default is \"[RenderedMessage]\"",
+            IsOptional = true)]
+        public string MessageTemplate { get; set; }
 
         [SeqAppSetting(
             HelpText = "The image to show in the room for the message. The default is https://getseq.net/images/nuget/seq.png",
@@ -79,7 +92,7 @@ namespace Seq.Slack
             var message = new
             {
                 fallback = "[" + evt.Data.Level + "] " + evt.Data.RenderedMessage,
-                text = evt.Data.RenderedMessage,
+                text = GenerateMessageText(evt),
                 attachments = new ArrayList(),
                 username = string.IsNullOrWhiteSpace(Username) ? null : Username,
                 icon_url = string.IsNullOrWhiteSpace(IconUrl) ? "https://getseq.net/images/nuget/seq.png" : IconUrl
@@ -152,6 +165,20 @@ namespace Seq.Slack
             SendMessageToSlack(message);
         }
 
+        private string GenerateMessageText(Event<LogEventData> evt)
+        {
+            var messageTemplateToUse = MessageTemplate;
+
+            if (string.IsNullOrWhiteSpace(MessageTemplate))
+            {
+                MessageTemplate = "[RenderedMessage]";
+            }
+
+            var sb = new StringBuilder();
+            sb.Append(SubstitutePlaceholders(messageTemplateToUse, evt));
+            AddSeqUrl(evt, sb);
+            return sb.ToString();
+        }
         private void SendMessageToSlack(object message)
         {
             var json = JsonConvert.SerializeObject(message, JsonSerializerSettings);
@@ -160,6 +187,59 @@ namespace Seq.Slack
                 var resp = HttpClient.PostAsync(WebhookUrl, content).Result;
                 resp.EnsureSuccessStatusCode();
             }
+        }
+        
+        private string SubstitutePlaceholders(string messageTemplateToUse, Event<LogEventData> evt)
+        {
+            var data = evt.Data;
+            var eventType = evt.EventType;
+
+            var placeholders = data.Properties.ToDictionary(k => k.Key.ToLower(), v => v.Value);
+
+            AddValueIfKeyDoesntExist(placeholders, "EventType", eventType);
+            AddValueIfKeyDoesntExist(placeholders, "RenderedMessage", data.RenderedMessage);
+
+            return placeholdersRx.Replace(messageTemplateToUse, delegate(Match m)
+            {
+                var key = m.Groups["key"].Value.ToLower();
+                var format = m.Groups["format"].Value;
+                return placeholders.ContainsKey(key) ? FormatValue(placeholders[key], format) : m.Value;
+            });
+        }
+
+        private string FormatValue(object value, string format)
+        {
+            var rawValue = value != null ? value.ToString() : "(Null)";
+
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                return rawValue;
+            }
+
+            try
+            {
+                return string.Format(format, rawValue);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not format Slack message: {value} {format}", value, format);
+            }
+
+            return rawValue;
+        }
+
+        private static void AddValueIfKeyDoesntExist(Dictionary<string, object> placeholders, string key, object value)
+        {
+            var loweredKey = key.ToLower();
+            if (!placeholders.ContainsKey(loweredKey))
+            {
+                placeholders.Add(loweredKey, value);
+            }
+        }
+        
+        private void AddSeqUrl(Event<LogEventData> evt, StringBuilder msg)
+        {
+            msg.AppendFormat("<{0}/#/events?filter=@Id%20%3D%3D%20%22{1}%22&show=expanded|View on Seq>", BaseUrl, evt.Id);
         }
     }
 }
