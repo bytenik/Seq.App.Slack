@@ -34,6 +34,12 @@ namespace Seq.Slack
             HelpText = "Once an event type has been sent to Slack, the time to wait before sending again. The default is zero.")]
         public int SuppressionMinutes { get; set; } = 0;
 
+        [SeqAppSetting(
+            DisplayName = "Exclude Properties",
+            IsOptional = true,
+            HelpText = "Should the event include the property information as attachments to the message. The default is to include")]
+        public bool ExcludePropertyInformation { get; set; }
+
         private static readonly HttpClient HttpClient = new HttpClient();
         private readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
 
@@ -73,6 +79,12 @@ namespace Seq.Slack
                 username = string.IsNullOrWhiteSpace(Username) ? null : Username,
                 icon_url = "https://getseq.net/images/nuget/seq.png"
             };
+
+            if (ExcludePropertyInformation)
+            {
+                SendMessageToSlack(message);
+                return;
+            }
 
             var special = new
             {
@@ -132,6 +144,11 @@ namespace Seq.Slack
             if (otherProperties.fields.Count != 0)
                 message.attachments.Add(otherProperties);
 
+            SendMessageToSlack(message);
+        }
+
+        private void SendMessageToSlack(object message)
+        {
             var json = JsonConvert.SerializeObject(message, JsonSerializerSettings);
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
