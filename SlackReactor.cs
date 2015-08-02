@@ -239,7 +239,8 @@ namespace Seq.Slack
         
         private void AddSeqUrl(Event<LogEventData> evt, StringBuilder msg)
         {
-            msg.AppendFormat("<{0}/#/events?filter=@Id%20%3D%3D%20%22{1}%22&show=expanded|View on Seq>", BaseUrl, evt.Id);
+            var seqUrl = string.IsNullOrWhiteSpace(BaseUrl) ? Host.ListenUris.FirstOrDefault() : BaseUrl;
+            msg.AppendFormat("<{0}/#/events?filter=@Id%20%3D%3D%20%22{1}%22&show=expanded|View on Seq>", seqUrl, evt.Id);
         }
     }
 }
