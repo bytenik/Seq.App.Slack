@@ -40,7 +40,7 @@ namespace Seq.Slack
             DisplayName = "Suppression time (minutes)",
             IsOptional = true,
             HelpText = "Once an event type has been sent to Slack, the time to wait before sending again. The default is zero.")]
-        public int SuppressionMinutes { get; set; } = 0;
+        public int SuppressionMinutes { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Exclude Properties",
@@ -61,13 +61,14 @@ namespace Seq.Slack
         private static readonly HttpClient HttpClient = new HttpClient();
         private readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
 
-        private static readonly ImmutableDictionary<LogEventLevel, string> LevelToColor = (new Dictionary<LogEventLevel, string> {
-            [LogEventLevel.Verbose] = "#D3D3D3",
-            [LogEventLevel.Debug] = "#D3D3D3",
-            [LogEventLevel.Information] = "#00A000",
-            [LogEventLevel.Warning] = "#f9c019",
-            [LogEventLevel.Error] = "#e03836",
-            [LogEventLevel.Fatal] = "#e03836",
+        private static readonly ImmutableDictionary<LogEventLevel, string> LevelToColor = (new Dictionary<LogEventLevel, string>
+        {
+            {LogEventLevel.Verbose, "#D3D3D3"},
+            {LogEventLevel.Debug, "#D3D3D3"},
+            {LogEventLevel.Information, "#00A000"},
+            {LogEventLevel.Warning, "#f9c019"},
+            {LogEventLevel.Error, "#e03836"},
+            {LogEventLevel.Fatal, "#e03836"}
         }).ToImmutableDictionary();
 
         private static readonly ImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
