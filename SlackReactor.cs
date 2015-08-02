@@ -167,12 +167,12 @@ namespace Seq.Slack
 
         private string GenerateMessageText(Event<LogEventData> evt)
         {
-            var messageTemplateToUse = MessageTemplate;
-
             if (string.IsNullOrWhiteSpace(MessageTemplate))
             {
                 MessageTemplate = "[RenderedMessage]";
             }
+
+            var messageTemplateToUse = MessageTemplate;
 
             var sb = new StringBuilder();
             sb.Append(SubstitutePlaceholders(messageTemplateToUse, evt));
