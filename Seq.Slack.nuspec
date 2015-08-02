@@ -1,7 +1,7 @@
 ﻿<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Seq.App.Slack</id>
-    <version>0.1.6</version>
+    <version>0.1.7</version>
     <authors>bytenik</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>An app for Seq (http://getseq.net) that forwards messages to Slack.</description>
