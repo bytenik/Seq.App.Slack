@@ -155,7 +155,7 @@ namespace Seq.Slack
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
                     otherProperties.fields.Add(
-                        new {value = property.Value.ToString(), title = property.Key, @short = false});
+                        new { value = property.Value.ToString(), title = property.Key, @short = false });
                 }
             }
 
@@ -188,7 +188,7 @@ namespace Seq.Slack
                 resp.EnsureSuccessStatusCode();
             }
         }
-        
+
         private string SubstitutePlaceholders(string messageTemplateToUse, Event<LogEventData> evt)
         {
             var data = evt.Data;
@@ -238,11 +238,11 @@ namespace Seq.Slack
                 placeholders.Add(loweredKey, value);
             }
         }
-        
+
         private void AddSeqUrl(Event<LogEventData> evt, StringBuilder msg)
         {
             var seqUrl = string.IsNullOrWhiteSpace(BaseUrl) ? Host.ListenUris.FirstOrDefault() : BaseUrl;
-            msg.AppendFormat("<{0}/#/events?filter=@Id%20%3D%3D%20%22{1}%22&show=expanded|View on Seq>", seqUrl, evt.Id);
+            msg.AppendFormat(" (<{0}/#/events?filter=@Id%20%3D%3D%20%22{1}%22&show=expanded|View on Seq>)", seqUrl, evt.Id);
         }
     }
 }
