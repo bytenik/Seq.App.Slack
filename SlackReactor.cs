@@ -18,7 +18,7 @@ namespace Seq.Slack
     [SeqApp("Slack Notifier", Description = "Sends messages matching a view to Slack.")]
     public class SlackReactor : Reactor, ISubscribeTo<LogEventData>
     {
-        static Regex placeholdersRx = new Regex("(\\[(?<key>[^\\[\\]]+?)(\\:(?<format>[^\\[\\]]+?))?\\])", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        private static readonly Regex PlaceholdersRegex = new Regex("(\\[(?<key>[^\\[\\]]+?)(\\:(?<format>[^\\[\\]]+?))?\\])", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         [SeqAppSetting(
             DisplayName = "Seq Base URL",
@@ -61,7 +61,7 @@ namespace Seq.Slack
         private static readonly HttpClient HttpClient = new HttpClient();
         private readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
 
-        private static readonly ImmutableDictionary<LogEventLevel, string> LevelToColor = (new Dictionary<LogEventLevel, string> {
+        private static readonly IImmutableDictionary<LogEventLevel, string> LevelToColor = (new Dictionary<LogEventLevel, string> {
             [LogEventLevel.Verbose] = "#D3D3D3",
             [LogEventLevel.Debug] = "#D3D3D3",
             [LogEventLevel.Information] = "#00A000",
@@ -70,7 +70,7 @@ namespace Seq.Slack
             [LogEventLevel.Fatal] = "#e03836",
         }).ToImmutableDictionary();
 
-        private static readonly ImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
+        private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
 
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
@@ -107,16 +107,16 @@ namespace Seq.Slack
             var special = new
             {
                 color = color,
-                fields = new ArrayList { new { title = "Level", value = Enum.GetName(typeof(LogEventLevel), evt.Data.Level), @short = true } }
+                fields = new ArrayList { new { value = Enum.GetName(typeof(LogEventLevel), evt.Data.Level), title = "Level", @short = true } }
             };
+
             message.attachments.Add(special);
             foreach (var key in SpecialProperties)
             {
-                if (evt.Data.Properties != null && evt.Data.Properties.ContainsKey(key))
-                {
-                    var property = evt.Data.Properties[key];
-                    special.fields.Add(new { value = property.ToString(), title = key, @short = true });
-                }
+                if (evt.Data.Properties == null || !evt.Data.Properties.ContainsKey(key)) continue;
+
+                var property = evt.Data.Properties[key];
+                special.fields.Add(new { value = property.ToString(), title = key, @short = true });
             }
 
             if (evt.Data.Exception != null)
@@ -125,7 +125,7 @@ namespace Seq.Slack
                 {
                     color = color,
                     title = "Exception Details",
-                    text = "```" + evt.Data.Exception.Replace("\r", "") + "```",
+                    text = $"```{evt.Data.Exception.Replace("\r", "")}```",
                     mrkdwn_in = new List<string> { "text" },
                 });
             }
@@ -136,7 +136,7 @@ namespace Seq.Slack
                 {
                     color = color,
                     title = "Stack Trace",
-                    text = "```" + evt.Data.Properties["StackTrace"].ToString().Replace("\r", "") + "```",
+                    text = $"```{evt.Data.Properties["StackTrace"].ToString().Replace("\r", "")}```",
                     mrkdwn_in = new List<string> { "text" },
                 });
             }
@@ -154,8 +154,8 @@ namespace Seq.Slack
                 {
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
-                    otherProperties.fields.Add(
-                        new { value = property.Value.ToString(), title = property.Key, @short = false });
+
+                    otherProperties.fields.Add(new { value = property.Value.ToString(), title = property.Key, @short = false });
                 }
             }
 
@@ -168,17 +168,14 @@ namespace Seq.Slack
         private string GenerateMessageText(Event<LogEventData> evt)
         {
             if (string.IsNullOrWhiteSpace(MessageTemplate))
-            {
                 MessageTemplate = "[RenderedMessage]";
-            }
 
             var messageTemplateToUse = MessageTemplate;
 
-            var sb = new StringBuilder();
-            sb.Append(SubstitutePlaceholders(messageTemplateToUse, evt));
-            AddSeqUrl(evt, sb);
-            return sb.ToString();
+            var seqUrl = string.IsNullOrWhiteSpace(BaseUrl) ? Host.ListenUris.FirstOrDefault() : BaseUrl;
+            return $"{SubstitutePlaceholders(messageTemplateToUse, evt)} (<{seqUrl}/#/events?filter=@Id%20%3D%3D%20%22{evt.Id}%22&show=expanded|View on Seq>)";
         }
+
         private void SendMessageToSlack(object message)
         {
             var json = JsonConvert.SerializeObject(message, JsonSerializerSettings);
@@ -201,7 +198,7 @@ namespace Seq.Slack
             AddValueIfKeyDoesntExist(placeholders, "EventType", eventType);
             AddValueIfKeyDoesntExist(placeholders, "RenderedMessage", data.RenderedMessage);
 
-            return placeholdersRx.Replace(messageTemplateToUse, delegate(Match m)
+            return PlaceholdersRegex.Replace(messageTemplateToUse, m =>
             {
                 var key = m.Groups["key"].Value.ToLower();
                 var format = m.Groups["format"].Value;
@@ -211,12 +208,10 @@ namespace Seq.Slack
 
         private string FormatValue(object value, string format)
         {
-            var rawValue = value != null ? value.ToString() : "(Null)";
+            var rawValue = value?.ToString() ?? "(Null)";
 
             if (string.IsNullOrWhiteSpace(format))
-            {
                 return rawValue;
-            }
 
             try
             {
@@ -230,19 +225,11 @@ namespace Seq.Slack
             return rawValue;
         }
 
-        private static void AddValueIfKeyDoesntExist(Dictionary<string, object> placeholders, string key, object value)
+        private static void AddValueIfKeyDoesntExist(IDictionary<string, object> placeholders, string key, object value)
         {
             var loweredKey = key.ToLower();
             if (!placeholders.ContainsKey(loweredKey))
-            {
                 placeholders.Add(loweredKey, value);
-            }
-        }
-
-        private void AddSeqUrl(Event<LogEventData> evt, StringBuilder msg)
-        {
-            var seqUrl = string.IsNullOrWhiteSpace(BaseUrl) ? Host.ListenUris.FirstOrDefault() : BaseUrl;
-            msg.AppendFormat(" (<{0}/#/events?filter=@Id%20%3D%3D%20%22{1}%22&show=expanded|View on Seq>)", seqUrl, evt.Id);
         }
     }
 }
