@@ -192,7 +192,7 @@ namespace Seq.Slack
             var eventType = evt.EventType;
             var level = data.Level;
 
-            var placeholders = data.Properties.ToDictionary(k => k.Key.ToLower(), v => v.Value);
+            var placeholders = data.Properties?.ToDictionary(k => k.Key.ToLower(), v => v.Value) ?? new Dictionary<string, object>();
 
             AddValueIfKeyDoesntExist(placeholders, "Level", level);
             AddValueIfKeyDoesntExist(placeholders, "EventType", eventType);
