@@ -34,7 +34,7 @@ namespace Seq.Slack
             DisplayName = "Channel",
             IsOptional = true,
             HelpText = "The channel to be used for the slack notification.")]
-        public string channel { get; set; }
+        public string Channel { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Username",
@@ -102,7 +102,7 @@ namespace Seq.Slack
                 attachments = new ArrayList(),
                 username = string.IsNullOrWhiteSpace(Username) ? null : SubstitutePlaceholders(Username, evt, false),
                 icon_url = string.IsNullOrWhiteSpace(IconUrl) ? "https://getseq.net/images/nuget/seq.png" : IconUrl,
-                channel = channel,
+                channel = Channel,
             };
 
             if (ExcludePropertyInformation)
