@@ -31,6 +31,12 @@ namespace Seq.Slack
         public string WebhookUrl { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "Channel",
+            IsOptional = true,
+            HelpText = "The channel to be used for the slack notification.")]
+        public string channel { get; set; }
+
+        [SeqAppSetting(
             DisplayName = "Username",
             IsOptional = true,
             HelpText = "The username that Seq uses when posting to Slack. If not specified, uses the Webhook default. Username can also be a PropertyKey in the format [PropertyKey].")]
@@ -95,7 +101,8 @@ namespace Seq.Slack
                 text = GenerateMessageText(evt),
                 attachments = new ArrayList(),
                 username = string.IsNullOrWhiteSpace(Username) ? null : SubstitutePlaceholders(Username, evt, false),
-                icon_url = string.IsNullOrWhiteSpace(IconUrl) ? "https://getseq.net/images/nuget/seq.png" : IconUrl
+                icon_url = string.IsNullOrWhiteSpace(IconUrl) ? "https://getseq.net/images/nuget/seq.png" : IconUrl,
+                channel = channel,
             };
 
             if (ExcludePropertyInformation)
