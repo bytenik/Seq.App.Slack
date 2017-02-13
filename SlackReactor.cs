@@ -33,7 +33,7 @@ namespace Seq.Slack
         [SeqAppSetting(
             DisplayName = "Username",
             IsOptional = true,
-            HelpText = "The username that Seq uses when posting to Slack. If not specified, uses the Webhook default. username can also be a PropertyKey in the format [PropertyKey].")]
+            HelpText = "The username that Seq uses when posting to Slack. If not specified, uses the Webhook default. Username can also be a PropertyKey in the format [PropertyKey].")]
         public string Username { get; set; }
 
         [SeqAppSetting(
@@ -94,7 +94,7 @@ namespace Seq.Slack
                 fallback = "[" + evt.Data.Level + "] " + evt.Data.RenderedMessage,
                 text = GenerateMessageText(evt),
                 attachments = new ArrayList(),
-                username = string.IsNullOrWhiteSpace(Username) ? null : SubstitutePlaceholders(Username,evt,false),
+                username = string.IsNullOrWhiteSpace(Username) ? null : SubstitutePlaceholders(Username, evt, false),
                 icon_url = string.IsNullOrWhiteSpace(IconUrl) ? "https://getseq.net/images/nuget/seq.png" : IconUrl
             };
 
@@ -186,7 +186,7 @@ namespace Seq.Slack
             }
         }
 
-        private string SubstitutePlaceholders(string messageTemplateToUse, Event<LogEventData> evt,bool addLogData = true)
+        private string SubstitutePlaceholders(string messageTemplateToUse, Event<LogEventData> evt, bool addLogData = true)
         {
             var data = evt.Data;
             var eventType = evt.EventType;
