@@ -10,11 +10,11 @@ before_build:
 - cmd: nuget restore
 
 build:
-  project: Seq.App.Asana.sln
+  project: Seq.Slack.csproj
   verbosity: minimal
  
 after_build:
-- cmd: nuget pack Seq.App.Asana\Seq.App.Asana.csproj -version "%APPVEYOR_BUILD_VERSION%"
+- cmd: nuget pack Seq.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
 
 artifacts:
 - path: '*.nupkg'
