@@ -1,0 +1,29 @@
+version: 0.0.{build}
+
+branches:
+  only:
+  - master
+
+clone_depth: 20
+
+before_build:
+- cmd: nuget restore
+
+build:
+  project: Seq.App.Asana.sln
+  verbosity: minimal
+ 
+after_build:
+- cmd: nuget pack Seq.App.Asana\Seq.App.Asana.csproj -version "%APPVEYOR_BUILD_VERSION%"
+
+artifacts:
+- path: '*.nupkg'
+  name: nuget-package
+  
+deploy:
+- provider: NuGet
+  api_key:
+    secure: 1xyFzZK48G8faNP6LwV4vsxcyjYtxXO8gQ648Cn4yRBpgmbk7UsoT5FDKY6rVe6r
+  artifact: nuget-package
+  on:
+    branch: master
