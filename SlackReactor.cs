@@ -162,7 +162,7 @@ namespace Seq.Slack
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
 
-                    otherProperties.fields.Add(new { value = property.Value.ToString(), title = property.Key, @short = false });
+                    otherProperties.fields.Add(new { value = property.Value?.ToString() ?? "", title = property.Key, @short = false });
                 }
             }
 
