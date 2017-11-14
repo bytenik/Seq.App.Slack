@@ -1,4 +1,5 @@
-version: 0.1.{build}
+version: 0.2.{build}
+image: Visual Studio 2017
 
 branches:
   only:
@@ -10,14 +11,14 @@ before_build:
 - cmd: nuget restore
 
 build:
-  project: Seq.Slack.csproj
+  project: Seq.App.Slack.csproj
   verbosity: minimal
  
 after_build:
-- cmd: nuget pack Seq.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
+- cmd: nuget pack Seq.App.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
 
 artifacts:
-- path: '*.nupkg'
+- path: 'Seq.App.Slack.*.nupkg'
   name: nuget-package
   
 deploy:

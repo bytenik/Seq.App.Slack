@@ -48,3 +48,4 @@ Downloaded Profiling Logs/*
 *.Sync*
 *.ide/
 *.nupkg
+/.vs
