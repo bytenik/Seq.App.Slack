@@ -149,7 +149,7 @@ namespace Seq.App.Slack
 
             var messageTemplateToUse = string.IsNullOrWhiteSpace(MessageTemplate) ? "[RenderedMessage]" : MessageTemplate;
             var message = EventFormatting.SubstitutePlaceholders(messageTemplateToUse, evt);
-            var link = SlackSyntax.Hyperlink($"{seqUrl}/#/events?filter=@Id%20%3D%3D%20%22{evt.Id}%22&show=expanded", "View this event in Seq");
+            var link = SlackSyntax.Hyperlink($"{seqUrl?.TrimEnd('/')}/#/events?filter=@Id%20%3D%3D%20%22{evt.Id}%22&show=expanded", "View this event in Seq");
             return $"{message} ({link})";
         }
 
