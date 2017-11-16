@@ -11,11 +11,13 @@ before_build:
 - cmd: nuget restore
 
 build:
-  project: Seq.App.Slack.csproj
+  project: src\Seq.App.Slack\Seq.App.Slack.csproj
   verbosity: minimal
  
 after_build:
-- cmd: nuget pack Seq.App.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
+# - cmd: dotnet test .\test\Seq.App.Slack.Tests\Seq.App.Slack.Tests.csproj --no-build
+# - cmd: IF ERRORLEVEL 1 EXIT 1
+- cmd: nuget pack src\Seq.App.Slack\Seq.App.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
 
 artifacts:
 - path: 'Seq.App.Slack.*.nupkg'

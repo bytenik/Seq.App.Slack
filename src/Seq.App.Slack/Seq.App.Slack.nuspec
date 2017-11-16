@@ -1,10 +1,10 @@
 ﻿<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Seq.App.Slack</id>
-    <version>0.2.0</version>
+    <version>$version$</version>
     <authors>bytenik</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>An app for Seq (https://getseq.net) that forwards messages to Slack.</description>
+    <description>An app for Seq (https://getseq.net) that forwards events to Slack.</description>
     <language>en-US</language>
     <projectUrl>https://github.com/bytenik/Seq.App.Slack</projectUrl>
     <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
@@ -12,6 +12,6 @@
     <tags>seq-app seq serilog events Slack</tags>
   </metadata>
   <files>
-    <file src="bin\Debug\*.dll" target="lib\net45" exclude="bin\Debug\Seq.Apps.*;bin\Debug\Serilog.*" />
+    <file src="bin\Debug\*.dll" target="lib\net452" exclude="bin\Debug\Seq.Apps.*;bin\Debug\Serilog.*" />
   </files>
 </package>
