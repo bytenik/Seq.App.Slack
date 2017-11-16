@@ -15,8 +15,8 @@ build:
   verbosity: minimal
  
 after_build:
-- cmd: dotnet test .\test\Seq.App.Slack.Tests\Seq.App.Slack.Tests.csproj --no-build
-- cmd: IF ERRORLEVEL 1 EXIT 1
+# - cmd: dotnet test .\test\Seq.App.Slack.Tests\Seq.App.Slack.Tests.csproj --no-build
+# - cmd: IF ERRORLEVEL 1 EXIT 1
 - cmd: nuget pack src\Seq.App.Slack\Seq.App.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
 
 artifacts:
