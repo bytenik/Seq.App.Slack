@@ -63,8 +63,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventFormatting.cs" />
+    <Compile Include="EventTypeSuppressions.cs" />
     <Compile Include="SlackMessage.cs" />
+    <Compile Include="SlackMessageAttachment.cs" />
+    <Compile Include="SlackMessageAttachmentField.cs" />
+    <Compile Include="SlackSyntax.cs" />
     <Compile Include="SlackReactor.cs" />
+    <Compile Include="SlackApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
