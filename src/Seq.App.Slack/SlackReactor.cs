@@ -49,7 +49,7 @@ namespace Seq.App.Slack
 
         [SeqAppSetting(
             DisplayName = "Message",
-            HelpText = "The message to send to Slack. Refer to https://api.slack.com/docs/formatting for formatting options. Event property values can be added in the format [PropertyName]. The default is \"[RenderedMessage]\". Ignored for Seq Alerts.",
+            HelpText = "The message to send to Slack. Refer to https://api.slack.com/docs/formatting for formatting options. Event property values can be added in the format [PropertyName]. The default is \"[RenderedMessage]\". Adds a markdown as attachment:text for Alerts.",
             IsOptional = true)]
         public string MessageTemplate { get; set; }
 
@@ -89,6 +89,11 @@ namespace Seq.App.Slack
                 var resultsText = SlackSyntax.Hyperlink(resultsUrl, "Explore detected results in Seq");
                 var results = new SlackMessageAttachment(color, resultsText);
                 message.Attachments.Add(results);
+
+                if(MessageTemplate != null)
+                {
+                    message.Attachments.Add(new SlackMessageAttachment(color, MessageTemplate, null, true));
+                }
 
                 SlackApi.SendMessage(WebhookUrl, message);
                 return;
