@@ -32,12 +32,6 @@ namespace Seq.App.Slack
         public string Username { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Seq base URL",
-            HelpText = "Used for generating links to events in Slack messages. The default is the value supplied by Seq.",
-            IsOptional = true)]
-        public string BaseUrl { get; set; }
-
-        [SeqAppSetting(
             DisplayName = "Suppression time (minutes)",
             IsOptional = true,
             HelpText = "Once an event type has been sent to Slack, the time to wait before sending again. The default is zero.")]
