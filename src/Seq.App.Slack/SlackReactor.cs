@@ -185,7 +185,7 @@ namespace Seq.App.Slack
 
         private string GenerateMessageText(Event<LogEventData> evt)
         {
-            var seqUrl = string.IsNullOrWhiteSpace(BaseUrl) ? Host.ListenUris.FirstOrDefault() : BaseUrl;
+            var seqUrl = Host.ListenUris.FirstOrDefault();
 
             if (IsAlert(evt))
             {
