@@ -1,6 +1,8 @@
-﻿using Seq.Apps;
+﻿using Newtonsoft.Json;
+using Seq.Apps;
 using Seq.Apps.LogEvents;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -59,10 +61,23 @@ namespace Seq.App.Slack
             IsOptional = true)]
         public string IconUrl { get; set; }
 
+        [SeqAppSetting(
+            DisplayName = "Proxy Server",
+            HelpText = "Proxy server to be used when making HTTPS request to slack api, uses default credentials",
+            IsOptional = true)]
+        public string ProxyServer { get; set; }
+
+        [SeqAppSetting(
+            DisplayName = "Dictionary serialiser string limit",
+            IsOptional = true,
+            HelpText = "If a property is a Dictionary, it's serialised as JSON and will be truncated if the resulting string is longer than this number")]
+        public int? JsonTrunateAt { get; set; } = null;
+
         private EventTypeSuppressions _suppressions;
 
         private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
 
+        private static SlackApi slackApi;
         public void On(Event<LogEventData> evt)
         {
             _suppressions = _suppressions ?? new EventTypeSuppressions(SuppressionMinutes);
@@ -77,9 +92,12 @@ namespace Seq.App.Slack
                                            string.IsNullOrWhiteSpace(IconUrl) ? DefaultIconUrl : IconUrl,
                                            Channel);
 
+            if (slackApi == null)
+                slackApi = new SlackApi(ProxyServer);
+
             if (ExcludePropertyInformation)
             {
-                SlackApi.SendMessage(WebhookUrl, message);
+                slackApi.SendMessage(WebhookUrl, message);
                 return;
             }
 
@@ -95,7 +113,7 @@ namespace Seq.App.Slack
                     message.Attachments.Add(new SlackMessageAttachment(color, MessageTemplate, null, true));
                 }
 
-                SlackApi.SendMessage(WebhookUrl, message);
+                slackApi.SendMessage(WebhookUrl, message);
                 return;
             }
 
@@ -129,14 +147,46 @@ namespace Seq.App.Slack
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
 
-                    otherProperties.Fields.Add(new SlackMessageAttachmentField(property.Key, property.Value?.ToString() ?? "", @short: false));
+                    string value = convertPropertyValueToString(property.Value);
+                    
+                    otherProperties.Fields.Add(new SlackMessageAttachmentField(property.Key, value, @short: false));
                 }
             }
 
             if (otherProperties.Fields.Count != 0)
                 message.Attachments.Add(otherProperties);
 
-            SlackApi.SendMessage(WebhookUrl, message);
+            slackApi.SendMessage(WebhookUrl, message);
+        }
+
+        internal string convertPropertyValueToString(object propertyValue)
+        {
+            if (propertyValue == null)
+                return string.Empty;
+
+            string result;
+            Type t = propertyValue.GetType();
+            bool isDict = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+            if (isDict)
+            {
+                var settings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                result = JsonConvert.SerializeObject(propertyValue, settings);
+                if (JsonTrunateAt.HasValue)
+                {
+                    if (result.Length > JsonTrunateAt)
+                    {
+                        result = result.Substring(0, JsonTrunateAt.Value) + "...";
+                    }
+                }
+            }
+            else
+            {
+                result = propertyValue.ToString();
+            }
+            return result;
         }
 
         private string GenerateMessageText(Event<LogEventData> evt)
