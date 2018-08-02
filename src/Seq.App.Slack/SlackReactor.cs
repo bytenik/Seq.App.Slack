@@ -1,6 +1,8 @@
-﻿using Seq.Apps;
+﻿using Newtonsoft.Json;
+using Seq.Apps;
 using Seq.Apps.LogEvents;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -30,12 +32,6 @@ namespace Seq.App.Slack
         public string Username { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Seq base URL",
-            HelpText = "Used for generating links to events in Slack messages. The default is the value supplied by Seq.",
-            IsOptional = true)]
-        public string BaseUrl { get; set; }
-
-        [SeqAppSetting(
             DisplayName = "Suppression time (minutes)",
             IsOptional = true,
             HelpText = "Once an event type has been sent to Slack, the time to wait before sending again. The default is zero.")]
@@ -59,9 +55,25 @@ namespace Seq.App.Slack
             IsOptional = true)]
         public string IconUrl { get; set; }
 
-        private EventTypeSuppressions _suppressions;
+        [SeqAppSetting(
+            DisplayName = "Proxy Server",
+            HelpText = "Proxy server to be used when making HTTPS request to slack api, uses default credentials",
+            IsOptional = true)]
+        public string ProxyServer { get; set; }
 
+        [SeqAppSetting(
+            DisplayName = "Maximum property length",
+            IsOptional = true,
+            HelpText = "If a property when converted to a string is longer than this number it will be truncated")]
+        public int? MaxPropertyLength { get; set; } = null;
+
+        private EventTypeSuppressions _suppressions;
         private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
+        private static SlackApi _slackApi;
+        private static JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
 
         public void On(Event<LogEventData> evt)
         {
@@ -77,9 +89,12 @@ namespace Seq.App.Slack
                                            string.IsNullOrWhiteSpace(IconUrl) ? DefaultIconUrl : IconUrl,
                                            Channel);
 
+            if (_slackApi == null)
+                _slackApi = new SlackApi(ProxyServer);
+
             if (ExcludePropertyInformation)
             {
-                SlackApi.SendMessage(WebhookUrl, message);
+                _slackApi.SendMessage(WebhookUrl, message);
                 return;
             }
 
@@ -95,7 +110,7 @@ namespace Seq.App.Slack
                     message.Attachments.Add(new SlackMessageAttachment(color, MessageTemplate, null, true));
                 }
 
-                SlackApi.SendMessage(WebhookUrl, message);
+                _slackApi.SendMessage(WebhookUrl, message);
                 return;
             }
 
@@ -129,19 +144,49 @@ namespace Seq.App.Slack
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
 
-                    otherProperties.Fields.Add(new SlackMessageAttachmentField(property.Key, property.Value?.ToString() ?? "", @short: false));
+                    string value = ConvertPropertyValueToString(property.Value);
+                    
+                    otherProperties.Fields.Add(new SlackMessageAttachmentField(property.Key, value, @short: false));
                 }
             }
 
             if (otherProperties.Fields.Count != 0)
                 message.Attachments.Add(otherProperties);
 
-            SlackApi.SendMessage(WebhookUrl, message);
+            _slackApi.SendMessage(WebhookUrl, message);
+        }
+
+        internal string ConvertPropertyValueToString(object propertyValue)
+        {
+            if (propertyValue == null)
+                return string.Empty;
+
+            string result;
+            Type t = propertyValue.GetType();
+            bool isDict = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+            if (isDict)
+            {
+                result = JsonConvert.SerializeObject(propertyValue, _jsonSettings);
+            }
+            else
+            {
+                result = propertyValue.ToString();
+            }
+
+            if (MaxPropertyLength.HasValue)
+            {
+                if (result.Length > MaxPropertyLength)
+                {
+                    result = result.Substring(0, MaxPropertyLength.Value) + "...";
+                }
+            }
+
+            return result;
         }
 
         private string GenerateMessageText(Event<LogEventData> evt)
         {
-            var seqUrl = string.IsNullOrWhiteSpace(BaseUrl) ? Host.ListenUris.FirstOrDefault() : BaseUrl;
+            var seqUrl = Host.ListenUris.FirstOrDefault();
 
             if (IsAlert(evt))
             {
