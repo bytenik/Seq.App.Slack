@@ -62,16 +62,19 @@ namespace Seq.App.Slack
         public string ProxyServer { get; set; }
 
         [SeqAppSetting(
-            DisplayName = "Dictionary serialiser string limit",
+            DisplayName = "Maximum property length",
             IsOptional = true,
-            HelpText = "If a property is a Dictionary, it's serialised as JSON and will be truncated if the resulting string is longer than this number")]
-        public int? JsonTrunateAt { get; set; } = null;
+            HelpText = "If a property when converted to a string is longer than this number it will be truncated")]
+        public int? MaxPropertyLength { get; set; } = null;
 
         private EventTypeSuppressions _suppressions;
-
         private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
+        private static SlackApi _slackApi;
+        private static JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
 
-        private static SlackApi slackApi;
         public void On(Event<LogEventData> evt)
         {
             _suppressions = _suppressions ?? new EventTypeSuppressions(SuppressionMinutes);
@@ -86,12 +89,12 @@ namespace Seq.App.Slack
                                            string.IsNullOrWhiteSpace(IconUrl) ? DefaultIconUrl : IconUrl,
                                            Channel);
 
-            if (slackApi == null)
-                slackApi = new SlackApi(ProxyServer);
+            if (_slackApi == null)
+                _slackApi = new SlackApi(ProxyServer);
 
             if (ExcludePropertyInformation)
             {
-                slackApi.SendMessage(WebhookUrl, message);
+                _slackApi.SendMessage(WebhookUrl, message);
                 return;
             }
 
@@ -107,7 +110,7 @@ namespace Seq.App.Slack
                     message.Attachments.Add(new SlackMessageAttachment(color, MessageTemplate, null, true));
                 }
 
-                slackApi.SendMessage(WebhookUrl, message);
+                _slackApi.SendMessage(WebhookUrl, message);
                 return;
             }
 
@@ -141,7 +144,7 @@ namespace Seq.App.Slack
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
 
-                    string value = convertPropertyValueToString(property.Value);
+                    string value = ConvertPropertyValueToString(property.Value);
                     
                     otherProperties.Fields.Add(new SlackMessageAttachmentField(property.Key, value, @short: false));
                 }
@@ -150,10 +153,10 @@ namespace Seq.App.Slack
             if (otherProperties.Fields.Count != 0)
                 message.Attachments.Add(otherProperties);
 
-            slackApi.SendMessage(WebhookUrl, message);
+            _slackApi.SendMessage(WebhookUrl, message);
         }
 
-        internal string convertPropertyValueToString(object propertyValue)
+        internal string ConvertPropertyValueToString(object propertyValue)
         {
             if (propertyValue == null)
                 return string.Empty;
@@ -163,23 +166,21 @@ namespace Seq.App.Slack
             bool isDict = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
             if (isDict)
             {
-                var settings = new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                result = JsonConvert.SerializeObject(propertyValue, settings);
-                if (JsonTrunateAt.HasValue)
-                {
-                    if (result.Length > JsonTrunateAt)
-                    {
-                        result = result.Substring(0, JsonTrunateAt.Value) + "...";
-                    }
-                }
+                result = JsonConvert.SerializeObject(propertyValue, _jsonSettings);
             }
             else
             {
                 result = propertyValue.ToString();
             }
+
+            if (MaxPropertyLength.HasValue)
+            {
+                if (result.Length > MaxPropertyLength)
+                {
+                    result = result.Substring(0, MaxPropertyLength.Value) + "...";
+                }
+            }
+
             return result;
         }
 

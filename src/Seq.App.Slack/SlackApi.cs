@@ -7,7 +7,11 @@ namespace Seq.App.Slack
 {
     class SlackApi
     {
-        private HttpClient httpClient;
+        private readonly HttpClient _httpClient;
+        private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
 
         public SlackApi(string proxyServer)
         {
@@ -23,11 +27,11 @@ namespace Seq.App.Slack
                     PreAuthenticate = true,
                     UseDefaultCredentials = true,
                 };
-                httpClient = new HttpClient(handler: httpClientHandler);
+                _httpClient = new HttpClient(handler: httpClientHandler);
             }
             else
             {
-                httpClient = new HttpClient();
+                _httpClient = new HttpClient();
             }
         }
 
@@ -35,14 +39,10 @@ namespace Seq.App.Slack
         
         public void SendMessage(string webhookUrl, SlackMessage message)
         {
-            var settings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            var json = JsonConvert.SerializeObject(message, settings);
+            var json = JsonConvert.SerializeObject(message, _jsonSettings);
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
-                var resp = httpClient.PostAsync(webhookUrl, content).Result;
+                var resp = _httpClient.PostAsync(webhookUrl, content).Result;
                 resp.EnsureSuccessStatusCode();
             }
         }
