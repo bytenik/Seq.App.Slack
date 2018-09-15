@@ -51,6 +51,7 @@ namespace Seq.App.Slack
                 AddValueIfKeyDoesntExist(placeholders, "Level", level);
                 AddValueIfKeyDoesntExist(placeholders, "EventType", eventType);
                 AddValueIfKeyDoesntExist(placeholders, "RenderedMessage", data.RenderedMessage);
+                AddValueIfKeyDoesntExist(placeholders, "Exception", data.Exception);
             }
             return PlaceholdersRegex.Replace(messageTemplateToUse, m =>
             {
