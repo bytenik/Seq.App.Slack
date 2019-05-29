@@ -13,7 +13,7 @@ namespace Seq.App.Slack
     {
         private static readonly Regex PlaceholdersRegex = new Regex(@"(\[(?<key>[^\[\]]+?)(\:(?<format>[^\[\]]+?))?\])", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-        private static readonly IImmutableDictionary<LogEventLevel, string> LevelColorMap = (new Dictionary<LogEventLevel, string>
+        private static readonly IImmutableDictionary<LogEventLevel, string> LevelColorMap = new Dictionary<LogEventLevel, string>
         {
             [LogEventLevel.Verbose] = "#D3D3D3",
             [LogEventLevel.Debug] = "#D3D3D3",
@@ -21,7 +21,7 @@ namespace Seq.App.Slack
             [LogEventLevel.Warning] = "#f9c019",
             [LogEventLevel.Error] = "#e03836",
             [LogEventLevel.Fatal] = "#e03836",
-        }).ToImmutableDictionary();
+        }.ToImmutableDictionary();
 
         public static string LevelToColor(LogEventLevel level)
         {
@@ -48,10 +48,10 @@ namespace Seq.App.Slack
 
             if (addLogData)
             {
-                AddValueIfKeyDoesntExist(placeholders, "Level", level);
-                AddValueIfKeyDoesntExist(placeholders, "EventType", eventType);
-                AddValueIfKeyDoesntExist(placeholders, "RenderedMessage", data.RenderedMessage);
-                AddValueIfKeyDoesntExist(placeholders, "Exception", data.Exception);
+                AddValueIfKeyDoesNotExist(placeholders, "Level", level);
+                AddValueIfKeyDoesNotExist(placeholders, "EventType", eventType);
+                AddValueIfKeyDoesNotExist(placeholders, "RenderedMessage", data.RenderedMessage);
+                AddValueIfKeyDoesNotExist(placeholders, "Exception", data.Exception);
             }
             return PlaceholdersRegex.Replace(messageTemplateToUse, m =>
             {
@@ -80,7 +80,7 @@ namespace Seq.App.Slack
             return rawValue;
         }
 
-        private static void AddValueIfKeyDoesntExist(IDictionary<string, object> placeholders, string key, object value)
+        private static void AddValueIfKeyDoesNotExist(IDictionary<string, object> placeholders, string key, object value)
         {
             var loweredKey = key.ToLower();
             if (!placeholders.ContainsKey(loweredKey))

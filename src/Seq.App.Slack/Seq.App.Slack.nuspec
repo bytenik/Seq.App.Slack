@@ -4,7 +4,7 @@
     <version>$version$</version>
     <authors>bytenik</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>An app for Seq (https://getseq.net) that forwards events to Slack.</description>
+    <description>An app for Seq (https://datalust.co/seq) that forwards events to Slack.</description>
     <language>en-US</language>
     <projectUrl>https://github.com/bytenik/Seq.App.Slack</projectUrl>
     <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0</licenseUrl>

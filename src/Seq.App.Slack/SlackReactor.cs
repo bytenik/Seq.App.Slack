@@ -12,7 +12,7 @@ namespace Seq.App.Slack
     public class SlackReactor : Reactor, ISubscribeTo<LogEventData>
     {
         private const uint AlertEventType = 0xA1E77000;
-        private const string DefaultIconUrl = "https://getseq.net/images/nuget/seq-apps.png";
+        private const string DefaultIconUrl = "https://datalust.co/images/nuget/seq-apps.png";
 
         [SeqAppSetting(
             DisplayName = "Webhook URL",
@@ -51,7 +51,7 @@ namespace Seq.App.Slack
 
         [SeqAppSetting(
             DisplayName = "Icon URL",
-            HelpText = "The image to show in the room for the message. The default is https://getseq.net/images/nuget/seq-apps.png",
+            HelpText = "The image to show in the room for the message. The default is " + DefaultIconUrl + ".",
             IsOptional = true)]
         public string IconUrl { get; set; }
 
@@ -70,7 +70,7 @@ namespace Seq.App.Slack
         private EventTypeSuppressions _suppressions;
         private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
         private static SlackApi _slackApi;
-        private static JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore
         };
@@ -166,7 +166,7 @@ namespace Seq.App.Slack
             bool isDict = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
             if (isDict)
             {
-                result = JsonConvert.SerializeObject(propertyValue, _jsonSettings);
+                result = JsonConvert.SerializeObject(propertyValue, JsonSettings);
             }
             else
             {
@@ -194,7 +194,13 @@ namespace Seq.App.Slack
                 var condition = EventFormatting.SafeGetProperty(evt, "Condition", raw: true);
                 var dashboardTitle = EventFormatting.SafeGetProperty(evt, "DashboardTitle");
                 var chartTitle = EventFormatting.SafeGetProperty(evt, "ChartTitle");
-                return $"Alert condition {SlackSyntax.Code(condition)} detected on {SlackSyntax.Hyperlink(dashboardUrl, $"{dashboardTitle}/{chartTitle}")}.";
+                var ownerNamespace = "";
+                if (evt.Data.Properties.TryGetValue("OwnerUsername", out var ownerUsernameProperty) && ownerUsernameProperty is string ownerUsername)
+                {
+                    if (!string.IsNullOrEmpty(ownerUsername))
+                        ownerNamespace = SlackSyntax.Escape(ownerUsername) + "/";
+                }
+                return $"Alert condition {SlackSyntax.Code(condition)} detected on {SlackSyntax.Hyperlink(dashboardUrl, $"{ownerNamespace}{dashboardTitle}/{chartTitle}")}.";
             }
 
             var messageTemplateToUse = string.IsNullOrWhiteSpace(MessageTemplate) ? "[RenderedMessage]" : MessageTemplate;

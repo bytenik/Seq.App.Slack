@@ -24,7 +24,7 @@ namespace Seq.App.Slack
         {
             this.Color = color;
             this.Text = text;
-            Title = title;
+            this.Title = title;
             this.Fields = new List<SlackMessageAttachmentField>();
             this.MarkdownIn = new List<string>();
 
