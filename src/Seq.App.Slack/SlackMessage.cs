@@ -27,9 +27,9 @@ namespace Seq.App.Slack
         {
             this.Fallback = fallback;
             this.Text = text;
-            Attachments = new List<SlackMessageAttachment>();
+            this.Attachments = new List<SlackMessageAttachment>();
             this.Username = username;
-            IconUrl = iconUrl;
+            this.IconUrl = iconUrl;
             this.Channel = channel;
         }
     }
