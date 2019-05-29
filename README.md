@@ -1,6 +1,6 @@
 # Seq.App.Slack [![NuGet](https://img.shields.io/nuget/v/Seq.App.Slack.svg?style=flat-square)](https://www.nuget.org/packages/Seq.App.Slack/)
 
-An app for [Seq](htts://datalust.co/seq) that forwards messages to [Slack](https://slack.com).
+An app for [Seq](https://datalust.co/seq) that forwards messages to [Slack](https://slack.com).
 
 ### Getting started
 
