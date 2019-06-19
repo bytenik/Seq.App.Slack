@@ -43,8 +43,11 @@ namespace Seq.App.Slack
             var data = evt.Data;
             var eventType = evt.EventType;
             var level = data.Level;
-
-            var placeholders = data.Properties?.ToDictionary(k => k.Key.ToLower(), v => v.Value) ?? new Dictionary<string, object>();
+            
+            var placeholders = new Dictionary<string, object>();
+            if(data.Properties != null)
+                foreach (var kvp in data.Properties)
+                    placeholders[kvp.Key.ToLower()] = kvp.Value;
 
             if (addLogData)
             {
