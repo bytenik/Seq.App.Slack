@@ -45,7 +45,7 @@ namespace Seq.App.Slack
             var level = data.Level;
             
             var placeholders = new Dictionary<string, object>();
-            if(data.Properties != null)
+            if (data.Properties != null)
                 foreach (var kvp in data.Properties)
                     placeholders[kvp.Key.ToLower()] = kvp.Value;
 
