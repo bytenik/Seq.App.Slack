@@ -1,6 +1,6 @@
 # Seq.App.Slack [![NuGet](https://img.shields.io/nuget/v/Seq.App.Slack.svg?style=flat-square)](https://www.nuget.org/packages/Seq.App.Slack/)
 
-An app for Seq (http://getseq.net) that forwards messages to Slack.
+An app for [Seq](https://datalust.co/seq) that forwards messages to [Slack](https://slack.com).
 
 ### Getting started
 
@@ -10,3 +10,4 @@ An app for Seq (http://getseq.net) that forwards messages to Slack.
  4. Back in Seq, under _Settings_ > _Apps_, select _Add Instance_ next to the Slack app icon
  5. Configure the app instance, providing the webhook URL
 
+Consult the Seq documentation for further information about [installing Seq apps](https://docs.datalust.co/docs/installing-seq-apps).
