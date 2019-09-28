@@ -42,16 +42,30 @@ namespace Seq.App.Slack.Tests
         }
 
         [Fact]
-        public void GivenIncludedPropertiesAreSupplieThenTheyAreRespected()
+        public void GivenIncludedPropertiesAreSuppliedThenTheyAreRespected()
         {
-            _slackReactor.IncludedProperties = "Property1,Property3";             
+            _slackReactor.IncludedProperties = "  Property1,   Property2,  Property3  ";             
+
+            _slackReactor.On(_event);
+
+            // Ensure the message we send to slack only includes the properties specified
+            _slackApi.Received().SendMessage(_slackReactor.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 3 &&
+                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
+                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property2") &&
+                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
+        }
+
+        [Fact]
+        public void GivenIncludedPropertiesWithWhitespaceAreSuppliedThenTheyAreRespected()
+        {
+            _slackReactor.IncludedProperties = "Property1,Property3";
 
             _slackReactor.On(_event);
 
             // Ensure the message we send to slack only includes the properties specified
             _slackApi.Received().SendMessage(_slackReactor.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
+                                                                                                 x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
+                                                                                                 x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
         }
 
         [Fact]

@@ -70,12 +70,12 @@ namespace Seq.App.Slack
         [SeqAppSetting(
             DisplayName = "Included properties",
             IsOptional = true,
-            HelpText = "Comma separated list (no spaces) of properties to include as attachments.  The default is to include all properties.")]
+            HelpText = "Comma separated list of properties to include as attachments.  The default is to include all properties.")]
         public string IncludedProperties { get; set; }
 
         private EventTypeSuppressions _suppressions;
         private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
-        private static ISlackApi _slackApi;
+        private ISlackApi _slackApi;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore
@@ -151,7 +151,7 @@ namespace Seq.App.Slack
                 message.Attachments.Add(new SlackMessageAttachment(color, SlackSyntax.Preformatted(stackTrace), "Stack Trace", textIsMarkdown: true));
             }
 
-            var includedPropertiesArray = string.IsNullOrWhiteSpace(IncludedProperties) ? new string[0] : IncludedProperties.Split(',');
+            var includedPropertiesArray = string.IsNullOrWhiteSpace(IncludedProperties) ? new string[0] : IncludedProperties.Split(',').Select(x => x.Trim());
             var otherProperties = new SlackMessageAttachment(color, "Properties");
             if (evt.Data.Properties != null)
             {
