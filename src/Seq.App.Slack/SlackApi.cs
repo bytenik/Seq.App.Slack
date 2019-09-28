@@ -5,7 +5,12 @@ using Newtonsoft.Json;
 
 namespace Seq.App.Slack
 {
-    class SlackApi
+    public interface ISlackApi
+    {
+        void SendMessage(string webhookUrl, SlackMessage message);
+    }
+
+    class SlackApi : ISlackApi
     {
         private readonly HttpClient _httpClient;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
