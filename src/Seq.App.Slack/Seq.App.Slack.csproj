@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="EventFormatting.cs" />
     <Compile Include="EventTypeSuppressions.cs" />
+    <Compile Include="ISlackApi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SlackMessage.cs" />
     <Compile Include="SlackMessageAttachment.cs" />

@@ -67,13 +67,28 @@ namespace Seq.App.Slack
             HelpText = "If a property when converted to a string is longer than this number it will be truncated")]
         public int? MaxPropertyLength { get; set; } = null;
 
+        [SeqAppSetting(
+            DisplayName = "Included properties",
+            IsOptional = true,
+            HelpText = "Comma separated list of properties to include as attachments.  The default is to include all properties.")]
+        public string IncludedProperties { get; set; }
+
         private EventTypeSuppressions _suppressions;
         private static readonly IImmutableList<string> SpecialProperties = ImmutableList.Create("Id", "Host");
-        private static SlackApi _slackApi;
+        private ISlackApi _slackApi;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore
         };
+
+        public SlackReactor()
+        {
+        }
+
+        internal SlackReactor(ISlackApi slackApi)
+        {
+            _slackApi = slackApi;
+        }
 
         public void On(Event<LogEventData> evt)
         {
@@ -136,6 +151,7 @@ namespace Seq.App.Slack
                 message.Attachments.Add(new SlackMessageAttachment(color, SlackSyntax.Preformatted(stackTrace), "Stack Trace", textIsMarkdown: true));
             }
 
+            var includedPropertiesArray = string.IsNullOrWhiteSpace(IncludedProperties) ? new string[0] : IncludedProperties.Split(',').Select(x => x.Trim());
             var otherProperties = new SlackMessageAttachment(color, "Properties");
             if (evt.Data.Properties != null)
             {
@@ -143,6 +159,7 @@ namespace Seq.App.Slack
                 {
                     if (SpecialProperties.Contains(property.Key)) continue;
                     if (property.Key == "StackTrace") continue;
+                    if (includedPropertiesArray.Any() && !includedPropertiesArray.Contains(property.Key)) continue;
 
                     string value = ConvertPropertyValueToString(property.Value);
                     
