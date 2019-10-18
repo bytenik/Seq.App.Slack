@@ -7,6 +7,12 @@ namespace Seq.App.Slack
 {
     class SlackApi : ISlackApi
     {
+        static SlackApi()
+        {
+            // Enable TLS 1.2 before any connection to the Slack API is made.
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        }
+
         private readonly HttpClient _httpClient;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
