@@ -8,7 +8,7 @@
     <language>en-US</language>
     <projectUrl>https://github.com/bytenik/Seq.App.Slack</projectUrl>
     <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>https://cdn.appstorm.net/web.appstorm.net/web/files/2013/10/slack_icon.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/bytenik/seq.app.slack/master/asset/seq-app-slack.png</iconUrl>
     <tags>seq-app seq serilog events Slack</tags>
   </metadata>
   <files>
