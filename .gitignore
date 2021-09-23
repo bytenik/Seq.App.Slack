@@ -49,3 +49,5 @@ Downloaded Profiling Logs/*
 *.ide/
 *.nupkg
 /.vs
+/artifacts
+/.idea

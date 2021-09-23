@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Seq.App.Slack
@@ -40,15 +41,13 @@ namespace Seq.App.Slack
                 _httpClient = new HttpClient();
             }
         }
-
         
-        
-        public void SendMessage(string webhookUrl, SlackMessage message)
+        public async Task SendMessageAsync(string webhookUrl, SlackMessage message)
         {
             var json = JsonConvert.SerializeObject(message, JsonSettings);
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             {
-                var resp = _httpClient.PostAsync(webhookUrl, content).Result;
+                var resp = await _httpClient.PostAsync(webhookUrl, content);
                 resp.EnsureSuccessStatusCode();
             }
         }
