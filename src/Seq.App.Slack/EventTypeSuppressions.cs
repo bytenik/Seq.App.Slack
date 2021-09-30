@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Seq.App.Slack
 {
     class EventTypeSuppressions
     {
-        private readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
+        private readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         private readonly int _suppressionMinutes;
 
         public EventTypeSuppressions(int suppressionMinutes)
@@ -15,17 +17,30 @@ namespace Seq.App.Slack
 
         public bool ShouldSuppressAt(uint eventType, DateTime utcNow)
         {
-            var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(eventType, k => { added = true; return DateTime.UtcNow; });
-            if (!added)
-            {
-                if (lastSeen > utcNow.AddMinutes(-_suppressionMinutes))
-                    return true;
+            if (_suppressionMinutes == 0)
+                return false;
 
-                _lastSeen[eventType] = utcNow;
+            if (!_suppressions.TryGetValue(eventType, out var suppressedSince) ||
+                suppressedSince.AddMinutes(_suppressionMinutes) < utcNow)
+            {
+                // Not suppressed, or suppression expired
+
+                // Clean up old entries
+                var expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(_suppressionMinutes) < utcNow);
+                while (expired.Value != default)
+                {
+                    _suppressions.Remove(expired.Key);
+                    expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(_suppressionMinutes) < utcNow);
+                }
+
+                // Start suppression again
+                suppressedSince = utcNow;
+                _suppressions[eventType] = suppressedSince;
+                return false;
             }
 
-            return false;
+            // Suppressed
+            return true;
         }
     }
 }
