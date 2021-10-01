@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Suppression
 {
     class EventTypeSuppressions
     {
@@ -12,7 +11,7 @@ namespace Seq.App.Slack
 
         public EventTypeSuppressions(int suppressionMinutes)
         {
-            this._suppressionMinutes = suppressionMinutes;
+            _suppressionMinutes = suppressionMinutes;
         }
 
         public bool ShouldSuppressAt(uint eventType, DateTime utcNow)

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Seq.App.Slack.Api;
+using Seq.App.Slack.Formatting;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Messages
 {
     class DefaultMessageBuilder : SlackMessageBuilder
     {

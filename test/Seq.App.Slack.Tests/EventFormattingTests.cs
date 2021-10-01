@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Seq.App.Slack.Formatting;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 using Xunit;

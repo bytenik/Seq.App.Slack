@@ -4,6 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Seq.App.Slack.Api;
+using Seq.App.Slack.Formatting;
+using Seq.App.Slack.Messages;
+using Seq.App.Slack.Suppression;
 
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global, UnusedAutoPropertyAccessor.Global, MemberCanBePrivate.Global
 

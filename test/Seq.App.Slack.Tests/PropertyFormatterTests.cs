@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Seq.App.Slack.Formatting;
 using Xunit;
 
 namespace Seq.App.Slack.Tests

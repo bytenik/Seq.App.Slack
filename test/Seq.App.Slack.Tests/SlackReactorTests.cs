@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Seq.App.Slack.Api;
 using Xunit;
 
 namespace Seq.App.Slack.Tests

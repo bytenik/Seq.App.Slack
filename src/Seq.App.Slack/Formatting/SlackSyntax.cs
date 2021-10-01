@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Formatting
 {
     static class SlackSyntax
     {

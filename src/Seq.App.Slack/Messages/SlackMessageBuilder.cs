@@ -1,8 +1,10 @@
 ﻿using System;
+using Seq.App.Slack.Api;
+using Seq.App.Slack.Formatting;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Messages
 {
     abstract class SlackMessageBuilder
     {

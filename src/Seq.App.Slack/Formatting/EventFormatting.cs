@@ -5,7 +5,7 @@ using Seq.Apps;
 using Seq.Apps.LogEvents;
 using Serilog;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Formatting
 {
     static class EventFormatting
     {

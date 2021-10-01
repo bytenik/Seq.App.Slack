@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Api
 {
     public class SlackMessage
     {
