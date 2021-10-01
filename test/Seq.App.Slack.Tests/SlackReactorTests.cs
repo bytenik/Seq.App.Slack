@@ -55,9 +55,9 @@ namespace Seq.App.Slack.Tests
             await slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property2")));
+            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Any(a => a.Fields.Count == 2 &&
+                a.Fields.Any(f => f.Title == "Property1") &&
+                a.Fields.Any(f => f.Title == "Property2"))));
         }
 
         [Fact]
@@ -68,9 +68,9 @@ namespace Seq.App.Slack.Tests
             await slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
-                                                                                                 x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
-                                                                                                 x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
+            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Any(a => a.Fields.Count == 2 &&
+                a.Fields.Any(f => f.Title == "Property1") &&
+                a.Fields.Any(f => f.Title == "Property3"))));
         }
 
         [Fact]
@@ -80,10 +80,10 @@ namespace Seq.App.Slack.Tests
             await slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 3 &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property2") &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
+            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Any(a => a.Fields.Count == 3 &&
+                a.Fields.Any(f => f.Title == "Property1") &&
+                a.Fields.Any(f => f.Title == "Property2") &&
+                a.Fields.Any(f => f.Title == "Property3"))));
         }
 
         [Fact]
@@ -94,8 +94,8 @@ namespace Seq.App.Slack.Tests
             await slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 1 &&
-                                                                                               x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1")));
+            await _slackApi.Received().SendMessageAsync(slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Any(a => a.Fields.Count == 1 &&
+                a.Fields.Any(f => f.Title == "Property1"))));
         }
     }
 }

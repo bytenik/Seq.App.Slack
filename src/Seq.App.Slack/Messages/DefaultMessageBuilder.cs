@@ -66,7 +66,7 @@ namespace Seq.App.Slack.Messages
                 message.Attachments.Add(new SlackMessageAttachment(color, SlackSyntax.Preformatted(stackTrace), "Stack Trace", textIsMarkdown: true));
             }
 
-            var otherProperties = new SlackMessageAttachment(color, "Properties");
+            var otherProperties = new SlackMessageAttachment(color);
             if (evt.Data.Properties != null)
             {
                 foreach (var property in evt.Data.Properties)
