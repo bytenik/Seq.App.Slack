@@ -31,7 +31,7 @@ namespace Seq.App.Slack.Formatting
             var path = new Queue<string>(propertyPath.Split('.'));
             var root = evt.Data.Properties;
 
-            do
+            while(root != null)
             {
                 var step = path.Dequeue();
                 if (!root.TryGetValue(step, out var next))
@@ -44,8 +44,7 @@ namespace Seq.App.Slack.Formatting
                 }
 
                 root = next as IReadOnlyDictionary<string, object>;
-
-            } while (root != null);
+            }
 
             return "";
         }
@@ -85,7 +84,8 @@ namespace Seq.App.Slack.Formatting
 
             try
             {
-                return string.Format(format, rawValue);
+                // Field values can contain formatting.
+                return SlackSyntax.Escape(string.Format(format, rawValue));
             }
             catch (Exception ex)
             {
@@ -100,6 +100,11 @@ namespace Seq.App.Slack.Formatting
             var loweredKey = key.ToLower();
             if (!placeholders.ContainsKey(loweredKey))
                 placeholders.Add(loweredKey, value);
+        }
+
+        public static string LinkToId(Host host, string eventId)
+        {
+            return $"{host.BaseUri.TrimEnd('/')}/#/events?filter=@Id%20%3D%3D%20%22{eventId}%22&show=expanded";
         }
     }
 }

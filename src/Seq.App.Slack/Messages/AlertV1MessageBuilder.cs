@@ -9,8 +9,8 @@ namespace Seq.App.Slack.Messages
     {
         private readonly string _messageTemplate;
 
-        public AlertV1MessageBuilder(Apps.App app, string channel, string username, string messageTemplate, string iconUrl, bool excludeAttachments) 
-            : base(app, channel, username, iconUrl, excludeAttachments)
+        public AlertV1MessageBuilder(Apps.App app, string channel, string username, string messageTemplate, string iconUrl, bool excludeOptionalAttachments) 
+            : base(app, channel, username, iconUrl, excludeOptionalAttachments)
         {
             _messageTemplate = messageTemplate;
         }
@@ -30,7 +30,7 @@ namespace Seq.App.Slack.Messages
             return $"Alert condition {SlackSyntax.Code(condition)} detected on {SlackSyntax.Hyperlink(dashboardUrl, $"{ownerNamespace}{dashboardTitle}/{chartTitle}")}.";
         }
 
-        protected override void AddAttachments(SlackMessage message, Event<LogEventData> evt, string color)
+        protected override void AddNecessaryAttachments(SlackMessage message, Event<LogEventData> evt, string color)
         {
             var resultsUrl = EventFormatting.SafeGetProperty(evt, "ResultsUrl");
             var resultsText = SlackSyntax.Hyperlink(resultsUrl, "Explore detected results in Seq");

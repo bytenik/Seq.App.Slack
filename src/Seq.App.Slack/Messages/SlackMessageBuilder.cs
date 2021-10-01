@@ -14,16 +14,16 @@ namespace Seq.App.Slack.Messages
         private readonly string _channel;
         private readonly string _username;
         private readonly string _iconUrl;
-        private readonly bool _excludeAttachments;
+        private readonly bool _excludeOptionalAttachments;
 
         protected SlackMessageBuilder(Apps.App app, string channel,
-            string username, string iconUrl, bool excludeAttachments)
+            string username, string iconUrl, bool excludeOptionalAttachments)
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _channel = channel;
             _username = username;
             _iconUrl = iconUrl;
-            _excludeAttachments = excludeAttachments;
+            _excludeOptionalAttachments = excludeOptionalAttachments;
         }
 
         public SlackMessage BuildMessage(Event<LogEventData> evt)
@@ -36,10 +36,12 @@ namespace Seq.App.Slack.Messages
                 string.IsNullOrWhiteSpace(_iconUrl) ? DefaultIconUrl : _iconUrl,
                 _channel);
 
-            if (!_excludeAttachments)
+            var color = EventFormatting.LevelToColor(evt.Data.Level);
+            AddNecessaryAttachments(message, evt, color);
+            
+            if (!_excludeOptionalAttachments)
             {
-                var color = EventFormatting.LevelToColor(evt.Data.Level);
-                AddAttachments(message, evt, color);
+                AddOptionalAttachments(message, evt, color);
             }
 
             return message;
@@ -47,6 +49,18 @@ namespace Seq.App.Slack.Messages
 
         protected abstract string GenerateMessageText(Event<LogEventData> evt);
 
-        protected abstract void AddAttachments(SlackMessage message, Event<LogEventData> evt, string color);
+        /// <summary>
+        /// Add attachments without which the message cannot be reliably interpreted by a user.
+        /// </summary>
+        protected virtual void AddNecessaryAttachments(SlackMessage message, Event<LogEventData> evt, string color)
+        {
+        }
+
+        /// <summary>
+        /// Add attachments that don't impact the meaning/interpretation of the message.
+        /// </summary>
+        protected virtual void AddOptionalAttachments(SlackMessage message, Event<LogEventData> evt, string color)
+        {
+        }
     }
 }

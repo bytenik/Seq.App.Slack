@@ -18,8 +18,8 @@ namespace Seq.App.Slack.Messages
         private static readonly IEnumerable<string> SpecialProperties = new[] { "Id", "Host" };
 
         public DefaultMessageBuilder(Host host, Apps.App app, PropertyValueFormatter propertyValueFormatter, string channel,
-            string username, string iconUrl, string messageTemplate, bool excludeAttachments, IEnumerable<string> includedProperties)
-            : base(app, channel, username, iconUrl, excludeAttachments)
+            string username, string iconUrl, string messageTemplate, bool excludeOptionalAttachments, IEnumerable<string> includedProperties)
+            : base(app, channel, username, iconUrl, excludeOptionalAttachments)
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _propertyValueFormatter = propertyValueFormatter ?? throw new ArgumentNullException(nameof(propertyValueFormatter));
@@ -31,11 +31,18 @@ namespace Seq.App.Slack.Messages
         {
             var messageTemplateToUse = string.IsNullOrWhiteSpace(_messageTemplate) ? "[RenderedMessage]" : _messageTemplate;
             var message = EventFormatting.SubstitutePlaceholders(messageTemplateToUse, evt);
-            var link = SlackSyntax.Hyperlink($"{_host.BaseUri.TrimEnd('/')}/#/events?filter=@Id%20%3D%3D%20%22{evt.Id}%22&show=expanded", "View this event in Seq");
-            return $"{message} ({link})";
+            return SlackSyntax.Escape(message);
         }
 
-        protected override void AddAttachments(SlackMessage message, Event<LogEventData> evt, string color)
+        protected override void AddNecessaryAttachments(SlackMessage message, Event<LogEventData> evt, string color)
+        {
+            var viewUrl = EventFormatting.LinkToId(_host, evt.Id);
+            var viewText = SlackSyntax.Hyperlink(viewUrl, "View this event in Seq");
+            var view = new SlackMessageAttachment(color, viewText);
+            message.Attachments.Add(view);
+        }
+
+        protected override void AddOptionalAttachments(SlackMessage message, Event<LogEventData> evt, string color)
         {
             var special = new SlackMessageAttachment(color);
             special.Fields.Add(new SlackMessageAttachmentField("Level", evt.Data.Level.ToString(), @short: true));

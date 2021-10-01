@@ -45,9 +45,9 @@ namespace Seq.App.Slack
         public int SuppressionMinutes { get; set; } = 0;
 
         [SeqAppSetting(
-            DisplayName = "Exclude properties",
+            DisplayName = "Exclude optional attachments",
             IsOptional = true,
-            HelpText = "Should event property information be excluded from the message? The default is to attach all properties.")]
+            HelpText = "Should event property information and other optional attachments be excluded from the message? The default is to attach all properties.")]
         public bool ExcludePropertyInformation { get; set; }
 
         [SeqAppSetting(
@@ -101,13 +101,14 @@ namespace Seq.App.Slack
                 _slackApi = new SlackApi(ProxyServer);
             }
 
+            var propertyValueFormatter = new PropertyValueFormatter(MaxPropertyLength);
+
             _messageBuilders = new Dictionary<uint, SlackMessageBuilder>
             { 
                 [AlertV1EventType] = new AlertV1MessageBuilder(App, Channel, Username, MessageTemplate, IconUrl, ExcludePropertyInformation),
-                [AlertV2EventType] = new AlertV2MessageBuilder(App, Channel, Username, MessageTemplate, IconUrl, ExcludePropertyInformation)
+                [AlertV2EventType] = new AlertV2MessageBuilder(Host, App, propertyValueFormatter, Channel, Username, MessageTemplate, IconUrl, ExcludePropertyInformation)
             };
 
-            var propertyValueFormatter = new PropertyValueFormatter(MaxPropertyLength);
             var includedProperties = string.IsNullOrWhiteSpace(IncludedProperties) ? Array.Empty<string>() : IncludedProperties.Split(',').Select(x => x.Trim());
             
             _defaultMessageBuilder = new DefaultMessageBuilder(Host, App, propertyValueFormatter, Channel, Username,
