@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -12,7 +11,7 @@ namespace Seq.App.Slack
     {
         private static readonly Regex PlaceholdersRegex = new Regex(@"(\[(?<key>[^\[\]]+?)(\:(?<format>[^\[\]]+?))?\])", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-        private static readonly IImmutableDictionary<LogEventLevel, string> LevelColorMap = new Dictionary<LogEventLevel, string>
+        private static readonly IReadOnlyDictionary<LogEventLevel, string> LevelColorMap = new Dictionary<LogEventLevel, string>
         {
             [LogEventLevel.Verbose] = "#D3D3D3",
             [LogEventLevel.Debug] = "#D3D3D3",
@@ -20,20 +19,34 @@ namespace Seq.App.Slack
             [LogEventLevel.Warning] = "#f9c019",
             [LogEventLevel.Error] = "#e03836",
             [LogEventLevel.Fatal] = "#e03836",
-        }.ToImmutableDictionary();
+        };
 
         public static string LevelToColor(LogEventLevel level)
         {
             return LevelColorMap[level];
         }
 
-        public static string SafeGetProperty(Event<LogEventData> evt, string propertyName, bool raw = false)
+        public static string SafeGetProperty(Event<LogEventData> evt, string propertyPath, bool raw = false)
         {
-            if (evt.Data.Properties.TryGetValue(propertyName, out var value))
+            var path = new Queue<string>(propertyPath.Split('.'));
+            var root = evt.Data.Properties;
+
+            do
             {
-                if (value == null) return "`null`";
-                return raw ? value.ToString() : SlackSyntax.Escape(value.ToString());
-            }
+                var step = path.Dequeue();
+                if (!root.TryGetValue(step, out var next))
+                    return "";
+
+                if (path.Count == 0)
+                {
+                    if (next == null) return "`null`";
+                    return raw ? next.ToString() : SlackSyntax.Escape(next.ToString());
+                }
+
+                root = next as IReadOnlyDictionary<string, object>;
+
+            } while (root != null);
+
             return "";
         }
 
@@ -67,12 +80,12 @@ namespace Seq.App.Slack
         {
             var rawValue = value?.ToString() ?? SlackSyntax.Code("null");
 
-            if (String.IsNullOrWhiteSpace(format))
+            if (string.IsNullOrWhiteSpace(format))
                 return rawValue;
 
             try
             {
-                return String.Format(format, rawValue);
+                return string.Format(format, rawValue);
             }
             catch (Exception ex)
             {

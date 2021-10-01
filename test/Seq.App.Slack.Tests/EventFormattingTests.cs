@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 using Xunit;
@@ -64,6 +63,32 @@ namespace Seq.App.Slack.Tests
             Assert.Equal("Use the [noun] [name]", result);
         }
 
+        [Theory]
+        [InlineData("First", "`null`")]
+        [InlineData("Second", "20")]
+        [InlineData("Third", "System.Collections.Generic.Dictionary`2[System.String,System.Object]")]
+        [InlineData("Third.Fourth", "test")]
+        [InlineData("Fifth", "")]
+        public void PropertiesAreRetrievedSafely(string path, string expected)
+        {
+            var data = new LogEventData
+            {
+                Properties = new Dictionary<string, object>
+                {
+                    ["First"] = null,
+                    ["Second"] = 20,
+                    ["Third"] = new Dictionary<string, object>
+                    {
+                        ["Fourth"] = "test"
+                    }
+                }
+            };
+            
+            var evt = new Event<LogEventData>("event-123", 4, DateTime.UtcNow, data);
+
+            var actual = EventFormatting.SafeGetProperty(evt, path);
+            Assert.Equal(expected, actual);
+        }
 
         private static string ExecuteSubstitutePlaceholders(IReadOnlyDictionary<string, object> properties)
             => EventFormatting.SubstitutePlaceholders(
