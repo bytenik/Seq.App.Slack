@@ -58,7 +58,7 @@ namespace Seq.App.Slack
 
         [SeqAppSetting(
             DisplayName = "Icon URL",
-            HelpText = "The image to show in the room for the message. The default is " + SlackMessageBuilder.DefaultIconUrl + ".",
+            HelpText = "The image to show in the channel for the message. The default is " + SlackMessageBuilder.DefaultIconUrl + ".",
             IsOptional = true)]
         public string IconUrl { get; set; }
 
@@ -77,7 +77,7 @@ namespace Seq.App.Slack
         [SeqAppSetting(
             DisplayName = "Included properties",
             IsOptional = true,
-            HelpText = "Comma separated list of properties to include as attachments.  The default is to include all properties.")]
+            HelpText = "Comma separated list of properties to include as attachments. The default is to include all properties.")]
         public string IncludedProperties { get; set; }
 
         private EventTypeSuppressions _suppressions;
