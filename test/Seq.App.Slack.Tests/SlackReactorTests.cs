@@ -4,13 +4,14 @@ using Seq.Apps.LogEvents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Seq.App.Slack.Tests
 {
     public class SlackReactorTests
     {
-        private SlackReactor _slackReactor;
+        private SlackApp _slackApp;
         private ISlackApi _slackApi;
         private IAppHost _appHost;
         private Event<LogEventData> _event;
@@ -22,11 +23,11 @@ namespace Seq.App.Slack.Tests
             _appHost.Host.Returns(new Host(new[] { "listenUri" }, "instance"));
             _appHost.App.Returns(new Apps.App("app-id", "App Title", new Dictionary<string, string>(), "storage-path"));
 
-            _slackReactor = new SlackReactor(_slackApi)
+            _slackApp = new SlackApp(_slackApi)
             {
                 WebhookUrl = "http://webhookurl.com"
             };
-            _slackReactor.Attach(_appHost);
+            _slackApp.Attach(_appHost);
 
             _event = new Event<LogEventData>("id", 1, DateTime.Now, new LogEventData
             {
@@ -42,52 +43,52 @@ namespace Seq.App.Slack.Tests
         }
 
         [Fact]
-        public void GivenIncludedPropertiesWithWhitespaceAreSuppliedThenTheyAreRespected()
+        public async Task GivenIncludedPropertiesWithWhitespaceAreSuppliedThenTheyAreRespected()
         {
-            _slackReactor.IncludedProperties = "  Property1 ,   Property2  ";             
+            _slackApp.IncludedProperties = "  Property1 ,   Property2  ";             
 
-            _slackReactor.On(_event);
+            await _slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            _slackApi.Received().SendMessage(_slackReactor.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
+            await _slackApi.Received().SendMessageAsync(_slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
                                                                                                x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
                                                                                                x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property2")));
         }
 
         [Fact]
-        public void GivenIncludedPropertiesAreSuppliedThenTheyAreRespected()
+        public async Task GivenIncludedPropertiesAreSuppliedThenTheyAreRespected()
         {
-            _slackReactor.IncludedProperties = "Property1,Property3";
+            _slackApp.IncludedProperties = "Property1,Property3";
 
-            _slackReactor.On(_event);
+            await _slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            _slackApi.Received().SendMessage(_slackReactor.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
+            await _slackApi.Received().SendMessageAsync(_slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 2 &&
                                                                                                  x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
                                                                                                  x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
         }
 
         [Fact]
-        public void GivenIncludedPropertiesNotSetThenAllPropertiesAreIncluded()
+        public async Task GivenIncludedPropertiesNotSetThenAllPropertiesAreIncluded()
         {
-            _slackReactor.On(_event);
+            await _slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            _slackApi.Received().SendMessage(_slackReactor.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 3 &&
+            await _slackApi.Received().SendMessageAsync(_slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 3 &&
                                                                                                x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1") &&
                                                                                                x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property2") &&
                                                                                                x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property3")));
         }
 
         [Fact]
-        public void GivenIncludedPropertiesContainsPropertiesThatDontExistThenTheyAreIgnored()
+        public async Task GivenIncludedPropertiesContainsPropertiesThatDontExistThenTheyAreIgnored()
         {
-            _slackReactor.IncludedProperties = "Property1,PropertyDoesntExist";              
+            _slackApp.IncludedProperties = "Property1,PropertyDoesntExist";              
 
-            _slackReactor.On(_event);
+            await _slackApp.OnAsync(_event);
 
             // Ensure the message we send to slack only includes the properties specified
-            _slackApi.Received().SendMessage(_slackReactor.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 1 &&
+            await _slackApi.Received().SendMessageAsync(_slackApp.WebhookUrl, Arg.Is<SlackMessage>(x => x.Attachments.Single(a => a.Text == "Properties").Fields.Count == 1 &&
                                                                                                x.Attachments.Single(a => a.Text == "Properties").Fields.Any(a => a.Title == "Property1")));
         }
     }

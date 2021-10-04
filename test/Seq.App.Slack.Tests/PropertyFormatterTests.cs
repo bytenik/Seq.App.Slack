@@ -5,19 +5,19 @@ namespace Seq.App.Slack.Tests
 {
     public class PropertyFormatterTests
     {
-        SlackReactor slackReactor = new SlackReactor();
+        SlackApp _slackApp = new SlackApp();
 
         [Fact]
         public void IntPropertyFormattedOk()
         {
-            var result = slackReactor.ConvertPropertyValueToString(1);
+            var result = _slackApp.ConvertPropertyValueToString(1);
             Assert.Equal("1", result);
         }
 
         [Fact]
         public void NullPropertyFormattedOk()
         {
-            var result = slackReactor.ConvertPropertyValueToString(null);
+            var result = _slackApp.ConvertPropertyValueToString(null);
             Assert.Equal(string.Empty, result);
         }
 
@@ -27,7 +27,7 @@ namespace Seq.App.Slack.Tests
             Dictionary<string, string> d = new Dictionary<string, string>();
             d.Add("test", "value");
             d.Add("test2", "value2");
-            var result = slackReactor.ConvertPropertyValueToString(d);
+            var result = _slackApp.ConvertPropertyValueToString(d);
             var expected = "{\"test\":\"value\",\"test2\":\"value2\"}";
             Assert.Equal(expected, result);
         }
@@ -35,11 +35,11 @@ namespace Seq.App.Slack.Tests
         [Fact]
         public void PropertiesShouldTruncateIfDesired()
         {
-            slackReactor.MaxPropertyLength = 5;
+            _slackApp.MaxPropertyLength = 5;
 
             Dictionary<string, string> d = new Dictionary<string, string>();
             d.Add("test", "value");
-            var result = slackReactor.ConvertPropertyValueToString(d);
+            var result = _slackApp.ConvertPropertyValueToString(d);
             var expected = "{\"tes...";
             Assert.Equal(expected, result);
         }

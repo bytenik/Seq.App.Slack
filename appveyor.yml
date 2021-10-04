@@ -1,32 +1,19 @@
-version: 0.2.{build}
-image: Visual Studio 2017
+version: '{build}'
+skip_tags: true
+image: Visual Studio 2019
 
-branches:
-  only:
-  - master
+build_script:
+  - ps: ./Build.ps1
 
-clone_depth: 20
-
-before_build:
-- cmd: nuget restore
-
-build:
-  project: src\Seq.App.Slack\Seq.App.Slack.csproj
-  verbosity: minimal
- 
-after_build:
-# - cmd: dotnet test .\test\Seq.App.Slack.Tests\Seq.App.Slack.Tests.csproj --no-build
-# - cmd: IF ERRORLEVEL 1 EXIT 1
-- cmd: nuget pack src\Seq.App.Slack\Seq.App.Slack.csproj -version "%APPVEYOR_BUILD_VERSION%"
+test: off
 
 artifacts:
-- path: 'Seq.App.Slack.*.nupkg'
-  name: nuget-package
+  - path: artifacts/Seq.App.*.nupkg
   
 deploy:
-- provider: NuGet
-  api_key:
-    secure: LL+SKJIddEj7H5bTk27bMY1qGSdYyInynDkrVj7T5P1KLDvJ7zOzXUcZeNGenkdo
-  artifact: nuget-package
-  on:
-    branch: master
+  - provider: NuGet
+    api_key:
+      secure: LL+SKJIddEj7H5bTk27bMY1qGSdYyInynDkrVj7T5P1KLDvJ7zOzXUcZeNGenkdo
+    skip_symbols: true
+    on:
+      branch: /^(master|dev)$/

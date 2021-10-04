@@ -5,11 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Seq.App.Slack
 {
     [SeqApp("Slack Notifier", Description = "Sends events to a Slack channel.")]
-    public class SlackReactor : Reactor, ISubscribeTo<LogEventData>
+    public class SlackApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
         private const uint AlertEventType = 0xA1E77000;
         private const string DefaultIconUrl = "https://datalust.co/images/nuget/seq-apps.png";
@@ -81,16 +82,16 @@ namespace Seq.App.Slack
             NullValueHandling = NullValueHandling.Ignore
         };
 
-        public SlackReactor()
+        public SlackApp()
         {
         }
 
-        internal SlackReactor(ISlackApi slackApi)
+        internal SlackApp(ISlackApi slackApi)
         {
             _slackApi = slackApi;
         }
 
-        public void On(Event<LogEventData> evt)
+        public async Task OnAsync(Event<LogEventData> evt)
         {
             _suppressions = _suppressions ?? new EventTypeSuppressions(SuppressionMinutes);
             if (_suppressions.ShouldSuppressAt(evt.EventType, DateTime.UtcNow))
@@ -109,7 +110,7 @@ namespace Seq.App.Slack
 
             if (ExcludePropertyInformation)
             {
-                _slackApi.SendMessage(WebhookUrl, message);
+                await _slackApi.SendMessageAsync(WebhookUrl, message);
                 return;
             }
 
@@ -125,7 +126,7 @@ namespace Seq.App.Slack
                     message.Attachments.Add(new SlackMessageAttachment(color, MessageTemplate, null, true));
                 }
 
-                _slackApi.SendMessage(WebhookUrl, message);
+                await _slackApi.SendMessageAsync(WebhookUrl, message);
                 return;
             }
 
@@ -170,7 +171,7 @@ namespace Seq.App.Slack
             if (otherProperties.Fields.Count != 0)
                 message.Attachments.Add(otherProperties);
 
-            _slackApi.SendMessage(WebhookUrl, message);
+            await _slackApi.SendMessageAsync(WebhookUrl, message);
         }
 
         internal string ConvertPropertyValueToString(object propertyValue)
@@ -203,8 +204,6 @@ namespace Seq.App.Slack
 
         private string GenerateMessageText(Event<LogEventData> evt)
         {
-            var seqUrl = Host.ListenUris.FirstOrDefault();
-
             if (IsAlert(evt))
             {
                 var dashboardUrl = EventFormatting.SafeGetProperty(evt, "DashboardUrl");
@@ -222,7 +221,7 @@ namespace Seq.App.Slack
 
             var messageTemplateToUse = string.IsNullOrWhiteSpace(MessageTemplate) ? "[RenderedMessage]" : MessageTemplate;
             var message = EventFormatting.SubstitutePlaceholders(messageTemplateToUse, evt);
-            var link = SlackSyntax.Hyperlink($"{seqUrl?.TrimEnd('/')}/#/events?filter=@Id%20%3D%3D%20%22{evt.Id}%22&show=expanded", "View this event in Seq");
+            var link = SlackSyntax.Hyperlink($"{Host.BaseUri.TrimEnd('/')}/#/events?filter=@Id%20%3D%3D%20%22{evt.Id}%22&show=expanded", "View this event in Seq");
             return $"{message} ({link})";
         }
 

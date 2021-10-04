@@ -1,7 +1,9 @@
-﻿namespace Seq.App.Slack
+﻿using System.Threading.Tasks;
+
+namespace Seq.App.Slack
 {
     public interface ISlackApi
     {
-        void SendMessage(string webhookUrl, SlackMessage message);
+        Task SendMessageAsync(string webhookUrl, SlackMessage message);
     }
 }
