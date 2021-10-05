@@ -1,4 +1,4 @@
-# Seq.App.Slack [![NuGet](https://img.shields.io/nuget/v/Seq.App.Slack.svg?style=flat-square)](https://www.nuget.org/packages/Seq.App.Slack/)
+# Seq.App.Slack [![NuGet](https://img.shields.io/nuget/v/Seq.App.Slack.svg?style=flat-square)](https://www.nuget.org/packages/Seq.App.Slack/) [![Build status](https://ci.appveyor.com/api/projects/status/rdi7sn0ediy7925q/branch/dev?svg=true)](https://ci.appveyor.com/project/datalust/seq-app-slack/branch/dev)
 
 An app for [Seq](https://datalust.co/seq) that forwards messages to [Slack](https://slack.com).
 
