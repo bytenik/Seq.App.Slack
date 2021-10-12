@@ -4,7 +4,7 @@ echo "build: Build started"
 
 Push-Location $PSScriptRoot
 
-if(Test-Path .\artifacts) {
+if (Test-Path ./artifacts) {
 	echo "build: Cleaning ./artifacts"
 	Remove-Item ./artifacts -Force -Recurse
 }
@@ -20,8 +20,7 @@ $suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch
 
 echo "build: Version suffix is $suffix"
 
-
-foreach ($test in ls test/*) {
+foreach ($test in ls ./test) {
     Push-Location $test
 
     echo "build: Testing project in $test"
@@ -32,7 +31,7 @@ foreach ($test in ls test/*) {
     Pop-Location
 }
 
-foreach ($src in ls src/*) {
+foreach ($src in ls ./src) {
     Push-Location $src
 
     echo "build: Packaging project in $src"
