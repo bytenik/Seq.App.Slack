@@ -21,7 +21,7 @@ $suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch
 echo "build: Version suffix is $suffix"
 
 
-foreach ($test in ls test/*.Tests) {
+foreach ($test in ls test/*) {
     Push-Location $test
 
     echo "build: Testing project in $test"
