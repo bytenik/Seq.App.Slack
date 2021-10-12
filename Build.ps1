@@ -9,6 +9,7 @@ if (Test-Path ./artifacts) {
 	Remove-Item ./artifacts -Force -Recurse
 }
 
+echo "build: Restoring"
 & dotnet restore --no-cache
 if($LASTEXITCODE -ne 0) { exit 1 }
 
@@ -20,32 +21,19 @@ $suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch
 
 echo "build: Version suffix is $suffix"
 
-foreach ($test in ls ./test) {
-    Push-Location $test
+echo "build: Testing"
+& dotnet test -c Release ./test/Seq.App.Slack.Tests/Seq.App.Slack.Tests.csproj
+if ($LASTEXITCODE -ne 0) { exit 3 }
 
-    echo "build: Testing project in $test"
-
-    & dotnet test -c Release
-    if($LASTEXITCODE -ne 0) { exit 3 }
-
-    Pop-Location
+echo "build: Publishing and packing"
+$src = "./src/Seq.App.Slack"
+if ($suffix) {
+    & dotnet publish -c Release -o "$src/obj/publish" --version-suffix=$suffix "$src/Seq.App.Slack.csproj"
+    & dotnet pack -c Release -o ./artifacts --no-build --version-suffix=$suffix "$src/Seq.App.Slack.csproj"
+} else {
+    & dotnet publish -c Release -o "$src/obj/publish" "$src/Seq.App.Slack.csproj"
+    & dotnet pack -c Release -o ./artifacts --no-build "$src/Seq.App.Slack.csproj"
 }
-
-foreach ($src in ls ./src) {
-    Push-Location $src
-
-    echo "build: Packaging project in $src"
-
-    if ($suffix) {
-        & dotnet publish -c Release -o ./obj/publish --version-suffix=$suffix
-        & dotnet pack -c Release -o ../../artifacts --no-build --version-suffix=$suffix
-    } else {
-        & dotnet publish -c Release -o ./obj/publish
-        & dotnet pack -c Release -o ../../artifacts --no-build
-    }
-    if($LASTEXITCODE -ne 0) { exit 1 }    
-
-    Pop-Location
-}
+if ($LASTEXITCODE -ne 0) { exit 1 }    
 
 Pop-Location
