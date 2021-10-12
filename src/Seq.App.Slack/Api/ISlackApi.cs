@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Api
 {
     public interface ISlackApi
     {
