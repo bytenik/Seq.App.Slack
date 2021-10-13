@@ -12,4 +12,10 @@ jobs:
       - name: Invoke Build.ps1 with PowerShell Core
         shell: pwsh
         run: ./Build.ps1
-        
+      - name: Push
+        if: github.ref == 'refs/heads/master || github.ref == 'refs/heads/dev
+        shell: pwsh
+        run: |
+          dotnet nuget push (get-item ./artifacts/*.nupkg).FullName --api-key="$env:NUGET_API_KEY"
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
