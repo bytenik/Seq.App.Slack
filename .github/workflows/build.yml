@@ -13,7 +13,7 @@ jobs:
         shell: pwsh
         run: ./Build.ps1
       - name: Push
-        if: github.ref == 'refs/heads/master || github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
         shell: pwsh
         run: |
           dotnet nuget push (get-item ./artifacts/*.nupkg).FullName --api-key="$env:NUGET_API_KEY"
