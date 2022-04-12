@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Seq.App.Slack
+namespace Seq.App.Slack.Api
 {
     class SlackApi : ISlackApi
     {
