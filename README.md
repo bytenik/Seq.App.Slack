@@ -12,4 +12,4 @@ An app for [Seq](https://datalust.co/seq) that forwards messages to [Slack](http
 
 Consult the Seq documentation for further information about [installing Seq apps](https://docs.datalust.co/docs/installing-seq-apps).
 
-For more information see [Notifying with Slack ](https://docs.datalust.co/docs/slack-notifications).
+For more information see [Notifying with Slack](https://docs.datalust.co/docs/slack-notifications).
