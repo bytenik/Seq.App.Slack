@@ -67,6 +67,12 @@ namespace Seq.App.Slack
             HelpText = "Proxy server to be used when making HTTPS requests to the Slack API. Uses default credentials.",
             IsOptional = true)]
         public string ProxyServer { get; set; }
+        
+        [SeqAppSetting(
+            DisplayName = "Host Header",
+            HelpText = "If you use a TLS/SSL tunneling service like stunnel, you need to set the Host header.",
+            IsOptional = true)]
+        public string HostHeader { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Maximum property length",
@@ -98,7 +104,7 @@ namespace Seq.App.Slack
         {
             if (_slackApi == null)
             {
-                _slackApi = new SlackApi(ProxyServer);
+                _slackApi = new SlackApi(ProxyServer, HostHeader);
             }
 
             var propertyValueFormatter = new PropertyValueFormatter(MaxPropertyLength);

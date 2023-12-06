@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Seq.App.Slack.Api
             NullValueHandling = NullValueHandling.Ignore
         };
 
-        public SlackApi(string proxyServer)
+        public SlackApi(string proxyServer, string hostHeader)
         {
             if (!string.IsNullOrWhiteSpace(proxyServer))
             {
@@ -40,8 +41,11 @@ namespace Seq.App.Slack.Api
             {
                 _httpClient = new HttpClient();
             }
+
+            if (!string.IsNullOrWhiteSpace(hostHeader))
+                _httpClient.DefaultRequestHeaders.Host = new Uri(hostHeader).Host;
         }
-        
+
         public async Task SendMessageAsync(string webhookUrl, SlackMessage message)
         {
             var json = JsonConvert.SerializeObject(message, JsonSettings);
